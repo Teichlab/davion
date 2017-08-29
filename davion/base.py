@@ -70,6 +70,9 @@ class MetaFrame(object):
                for exprs in self.express_collection.keys()},
             metadata=self.metadata.iloc[x, y])
 
+    def __getattr__(self, key):
+        return self.express_collection.get(key)
+
     @property
     def expression(self):
         return self.get_expression()
@@ -92,9 +95,7 @@ class GeneFrame(MetaFrame):
         for exprs, table in self.express_collection.items():
             table = table.rename(index=mapping)
             if agg is not None:
-                print(agg)
-                # table = table.groupby(table.index).agg(agg)
-                table = table.groupby(level=0).agg(agg)
+                table = table.groupby(level=0).sum()
             self.set_expression(table, exprs=exprs)
 
     def add_feature_sets(self, **kwargs):

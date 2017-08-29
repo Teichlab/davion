@@ -17,6 +17,11 @@ def get_effective_length(species='human', index='ensembl_gene_id'):
     length_df = q.stream()
     length_df.set_index(index, inplace=True)
     gene_length = (length_df['end_position'] - length_df['start_position']) / 1000
+
+    # Deal with repeats
+    print(gene_length.head())
+    gene_length = gene_length.groupby(level=0).agg(np.mean)
+    print(gene_length)
     return gene_length
 
 

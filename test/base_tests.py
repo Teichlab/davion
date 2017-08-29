@@ -1,6 +1,4 @@
 import unittest
-import pandas as pd
-import numpy as np
 from matplotlib import pyplot as plt
 
 from davion.base import MetaFrame, GeneFrame
@@ -59,8 +57,7 @@ class TestGeneFrame(TestGeneBase):
                           'Gene ID', 'Associated Gene Name', agg=np.sum,
                           sep='\t')
         assert not all(self.gf.expression.index.str.contains('ENSMUSG'))
-        print(self.gf.expression.duplicated())
-        assert self.gf.expression.duplicated().sum() == 0
+        assert self.gf.expression.index.duplicated().sum() == 0
 
     def test_mt_calc(self):
         self._add_mt_genes()
@@ -96,15 +93,25 @@ class TestGeneFrame(TestGeneBase):
 
 class TestUtils(TestGeneBase):
 
-    def xtest_get_efflen(self):
+    def test_get_efflen(self):
         lengths = get_effective_length(species='mouse')
         lengths.to_csv('../annotations/mouse_gene_lengths.csv')
+        name_lengths = get_effective_length(species='mouse',
+                                            index='external_gene_name')
+        name_lengths.to_csv('../annotations/mouse_name_gene_lengths.csv')
 
     def test_convert_counts_tpm(self):
         lengths = pd.read_csv('../annotations/mouse_gene_lengths.csv',
                               index_col=0)
+        name_lengths = pd.read_csv('../annotations/mouse_name_gene_lengths.csv')
         tpm = count_to_tpm(self.gf.get_expression('counts'), lengths)
         assert int(tpm.sum(axis=1).mean()) == 1e6
+        self.gf.map_genes('../annotations/mouse_annotation_map.tsv',
+                          'Gene ID', 'Associated Gene Name', agg=np.sum,
+                          sep='\t')
+        self.gf
+        tpm2 = count_to_tpm(self.gf.get_expression('counts'), name_lengths)
+        assert int(tpm2.sum(axis=1).mean()) == 1e6
 
 
 if __name__ == '__main__':
